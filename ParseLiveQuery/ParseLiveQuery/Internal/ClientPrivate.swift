@@ -185,23 +185,23 @@ extension Event {
         switch serverResponse {
         case .enter(let reqId, let object):
             requestId = reqId
-            self = .entered(try parseObject(object))
+            self = .entered(try parseObject(object), object)
 
         case .leave(let reqId, let object):
             requestId = reqId
-            self = .left(try parseObject(object))
+            self = .left(try parseObject(object), object)
 
         case .create(let reqId, let object):
             requestId = reqId
-            self = .created(try parseObject(object))
+            self = .created(try parseObject(object), object)
 
         case .update(let reqId, let object):
             requestId = reqId
-            self = .updated(try parseObject(object))
+            self = .updated(try parseObject(object), object)
 
         case .delete(let reqId, let object):
             requestId = reqId
-            self = .deleted(try parseObject(object))
+            self = .deleted(try parseObject(object), object)
 
         default: fatalError("Invalid state reached")
         }

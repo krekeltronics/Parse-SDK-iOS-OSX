@@ -70,27 +70,27 @@ public protocol SubscriptionHandling: AnyObject {
  */
 public enum Event<T> where T: PFObject {
     /// The object has been updated, and is now included in the query
-    case entered(T)
+    case entered(T, [String: AnyObject])
 
     /// The object has been updated, and is no longer included in the query
-    case left(T)
+    case left(T, [String: AnyObject])
 
     /// The object has been created, and is a part of the query
-    case created(T)
+    case created(T, [String: AnyObject])
 
     /// The object has been updated, and is still a part of the query
-    case updated(T)
+    case updated(T, [String: AnyObject])
 
     /// The object has been deleted, and is no longer included in the query
-    case deleted(T)
+    case deleted(T, [String: AnyObject])
 
     init<V>(event: Event<V>) {
         switch event {
-        case .entered(let value as T): self = .entered(value)
-        case .left(let value as T):    self = .left(value)
-        case .created(let value as T): self = .created(value)
-        case .updated(let value as T): self = .updated(value)
-        case .deleted(let value as T): self = .deleted(value)
+        case .entered(let value as T, let json): self = .entered(value, json)
+        case .left(let value as T, let json):    self = .left(value, json)
+        case .created(let value as T, let json): self = .created(value, json)
+        case .updated(let value as T, let json): self = .updated(value, json)
+        case .deleted(let value as T, let json): self = .deleted(value, json)
         default: fatalError()
         }
     }
@@ -98,11 +98,11 @@ public enum Event<T> where T: PFObject {
 
 private func == <T>(lhs: Event<T>, rhs: Event<T>) -> Bool {
     switch (lhs, rhs) {
-    case (.entered(let obj1), .entered(let obj2)): return obj1 == obj2
-    case (.left(let obj1), .left(let obj2)):       return obj1 == obj2
-    case (.created(let obj1), .created(let obj2)): return obj1 == obj2
-    case (.updated(let obj1), .updated(let obj2)): return obj1 == obj2
-    case (.deleted(let obj1), .deleted(let obj2)): return obj1 == obj2
+    case (.entered(let obj1, _), .entered(let obj2, _)): return obj1 == obj2
+    case (.left(let obj1, _), .left(let obj2, _)):       return obj1 == obj2
+    case (.created(let obj1, _), .created(let obj2, _)): return obj1 == obj2
+    case (.updated(let obj1, _), .updated(let obj2, _)): return obj1 == obj2
+    case (.deleted(let obj1, _), .deleted(let obj2, _)): return obj1 == obj2
     default: return false
     }
 }
@@ -235,14 +235,14 @@ extension Subscription {
      - returns: The same subscription, for easy chaining
 
      */
-    @discardableResult public func handle(_ eventType: @escaping (T) -> Event<T>, _ handler: @escaping (PFQuery<T>, T) -> Void) -> Subscription {
+    @discardableResult public func handle(_ eventType: @escaping (T, [String: AnyObject]) -> Event<T>, _ handler: @escaping (PFQuery<T>, T, [String: AnyObject]) -> Void) -> Subscription {
         return handleEvent { query, event in
             switch event {
-            case .entered(let obj) where eventType(obj) == event: handler(query, obj)
-            case .left(let obj)  where eventType(obj) == event: handler(query, obj)
-            case .created(let obj) where eventType(obj) == event: handler(query, obj)
-            case .updated(let obj) where eventType(obj) == event: handler(query, obj)
-            case .deleted(let obj) where eventType(obj) == event: handler(query, obj)
+            case .entered(let obj, let json) where eventType(obj, json) == event: handler(query, obj, json)
+            case .left(let obj, let json)  where eventType(obj, json) == event: handler(query, obj, json)
+            case .created(let obj, let json) where eventType(obj, json) == event: handler(query, obj, json)
+            case .updated(let obj, let json) where eventType(obj, json) == event: handler(query, obj, json)
+            case .deleted(let obj, let json) where eventType(obj, json) == event: handler(query, obj, json)
             default: return
             }
         }

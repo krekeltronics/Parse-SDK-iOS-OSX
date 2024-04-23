@@ -95,10 +95,15 @@ open class PFLiveQueryEvent: NSObject {
     /// Object this event is for.
     @objc
     public let object: PFObject
+    
+    /// Server-provided JSON describing this object
+    @objc
+    public let json: [String: AnyObject]
 
-    init(type: PFLiveQueryEventType, object: PFObject) {
+    init(type: PFLiveQueryEventType, object: PFObject, json: [String: AnyObject]) {
         self.type = type
         self.object = object
+        self.json = json
     }
 }
 
@@ -339,17 +344,17 @@ extension Client {
 
 extension PFLiveQueryEvent {
     convenience init<T>(event: ParseLiveQuery.Event<T>) {
-        let results: (type: PFLiveQueryEventType, object: PFObject) = {
+        let results: (type: PFLiveQueryEventType, object: PFObject, json: [String: AnyObject]) = {
             switch event {
-            case .entered(let object): return (.entered, object)
-            case .left(let object):    return (.left, object)
-            case .created(let object): return (.created, object)
-            case .updated(let object): return (.updated, object)
-            case .deleted(let object): return (.deleted, object)
+            case .entered(let object, let json): return (.entered, object, json)
+            case .left(let object, let json):    return (.left, object, json)
+            case .created(let object, let json): return (.created, object, json)
+            case .updated(let object, let json): return (.updated, object, json)
+            case .deleted(let object, let json): return (.deleted, object, json)
             }
         }()
 
-        self.init(type: results.type, object: results.object)
+        self.init(type: results.type, object: results.object, json: results.json)
     }
 }
 
